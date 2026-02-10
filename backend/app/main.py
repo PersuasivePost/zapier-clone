@@ -1,16 +1,36 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
-from app.api.rest import router as rest_router
+from app.core.database import get_db
 
-app = FastAPI(title="zapier-clone backend")
+app = FastAPI(title="FlowForge", version="0.1.0")
 
-app.include_router(rest_router, prefix="/api")
 
-@app.get("/")
-async def root():
-    return {"status": "ok"}
+@app.get("/health")
+async def health_check(db: AsyncSession = Depends(get_db)):
+    # Verify database connection
+    result = await db.execute(text("SELECT 1"))
+    
+    # Verify all tables exist
+    tables_query = await db.execute(
+        text(
+            "SELECT table_name FROM information_schema.tables "
+            "WHERE table_schema = 'public'"
+        )
+    )
+    tables = [row[0] for row in tables_query.fetchall()]
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, log_level="info")
+    return {
+        "status": "healthy",
+        "database": "connected",
+        "tables": tables,
+        "expected_tables": [
+            "users",
+            "connections", 
+            "workflows",
+            "workflow_steps",
+            "workflow_runs",
+            "step_runs",
+        ],
+    }

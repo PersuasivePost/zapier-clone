@@ -1,21 +1,37 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from functools import lru_cache
 from typing import Optional
 
 
 class Settings(BaseSettings):
-	project_name: str = "zapier-clone"
-	debug: bool = True
+    # Database
+    DATABASE_URL: str
+    DATABASE_URL_SYNC: Optional[str] = None
 
-	# Important secrets / connection strings
-	database_url: Optional[str] = None
-	secret_key: Optional[str] = None
-	redis_url: Optional[str] = None
-	celery_broker_url: Optional[str] = None
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
 
-	class Config:
-		# load environment variables from backend/.env when running from repo root
-		env_file = ".env"
-		env_file_encoding = "utf-8"
+    # Auth
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+
+    # Encryption for stored credentials
+    ENCRYPTION_KEY: str
+
+    # Celery / background
+    CELERY_BROKER_URL: Optional[str] = None
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
 
 
-settings = Settings()
+@lru_cache()
+def get_settings() -> Settings:
+    s = Settings()
+    # If sync DB URL wasn't provided explicitly, fall back to the async DATABASE_URL
+    if not s.DATABASE_URL_SYNC:
+        # If DATABASE_URL contains +asyncpg, prefer a sync variant; otherwise reuse it
+        s.DATABASE_URL_SYNC = s.DATABASE_URL
+    return s

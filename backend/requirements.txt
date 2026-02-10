@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy[asyncio]
+asyncpg
+alembic
+celery
+redis
+python-jose
+passlib
+strawberry-graphql
+httpx
+cryptography

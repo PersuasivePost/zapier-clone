@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     # Celery / background
     CELERY_BROKER_URL: Optional[str] = None
 
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/auth/google/callback"
+    FRONTEND_URL: str = "http://localhost:5173"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

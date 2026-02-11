@@ -1,10 +1,34 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
 from app.core.database import get_db
+from app.core.config import get_settings
+from app.api.auth import router as auth_router
+
+settings = get_settings()
 
 app = FastAPI(title="FlowForge", version="0.1.0")
+
+# Add Session middleware (required for OAuth)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONTEND_URL, "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(auth_router, prefix="/api")
 
 
 @app.get("/health")

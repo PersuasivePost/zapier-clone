@@ -108,7 +108,13 @@ export default function SignupPage() {
 
           {/* Social Signup Buttons */}
           <div className="space-y-3 mb-6">
-            <button className="w-full py-3 px-4 border-2 border-gray-300 rounded hover:bg-gray-50 transition flex items-center justify-center gap-3 font-semibold">
+            <button
+              onClick={() =>
+                (window.location.href =
+                  "http://localhost:8000/api/auth/google/login")
+              }
+              className="w-full py-3 px-4 border-2 border-gray-300 rounded hover:bg-gray-50 transition flex items-center justify-center gap-3 font-semibold"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"

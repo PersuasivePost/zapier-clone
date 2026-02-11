@@ -11,8 +11,8 @@ export default function AuthCallback() {
 
     if (token) {
       // Store token in localStorage
-      localStorage.setItem("access_token", token);
-      // Redirect to dashboard or home
+      localStorage.setItem("token", token);
+      // Redirect to dashboard
       navigate("/dashboard");
     } else if (error) {
       // Handle error

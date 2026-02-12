@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 from app.core.database import get_db, test_connection
 from app.core.config import get_settings
 from app.api.auth import router as auth_router
+from app.api.rest import router as rest_router
+from app.integrations import register_all_integrations
 
 settings = get_settings()
 
@@ -18,6 +20,10 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting FlowForge backend...")
     await test_connection()
+    
+    # Register all integrations
+    register_all_integrations()
+    
     yield
     # Shutdown
     print("👋 Shutting down FlowForge backend...")
@@ -46,6 +52,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router, prefix="/api")
+app.include_router(rest_router, prefix="/api")
 
 
 @app.get("/health")

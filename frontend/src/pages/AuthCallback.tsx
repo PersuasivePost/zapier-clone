@@ -9,16 +9,25 @@ export default function AuthCallback() {
     const token = searchParams.get("token");
     const error = searchParams.get("error");
 
+    console.log("🔍 AuthCallback - URL Search Params:", {
+      token: token ? `${token.substring(0, 20)}...` : null,
+      error: error,
+      fullURL: window.location.href,
+    });
+
     if (token) {
+      console.log("✅ Token found, storing in localStorage");
       // Store token in localStorage
       localStorage.setItem("token", token);
       // Redirect to dashboard
+      console.log("✅ Redirecting to dashboard");
       navigate("/dashboard");
     } else if (error) {
       // Handle error
-      console.error("OAuth error:", error);
+      console.error("❌ OAuth error:", error);
       navigate("/login?error=" + error);
     } else {
+      console.warn("⚠️ No token or error found, redirecting to login");
       navigate("/login");
     }
   }, [searchParams, navigate]);

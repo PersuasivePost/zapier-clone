@@ -17,28 +17,44 @@ export default function Dashboard() {
     const fetchUserInfo = async () => {
       const token = localStorage.getItem("token");
 
+      console.log(
+        "🔍 Dashboard - Checking token:",
+        token ? `${token.substring(0, 20)}...` : null,
+      );
+
       if (!token) {
+        console.warn("⚠️ No token found, redirecting to login");
         navigate("/login");
         return;
       }
 
       try {
+        console.log("📡 Fetching user info from /api/auth/me");
         const response = await fetch("http://localhost:8000/api/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log("📡 Response status:", response.status);
+
         if (response.ok) {
           const userData = await response.json();
+          console.log("✅ User data received:", userData);
           setUser(userData);
         } else {
+          const errorText = await response.text();
+          console.error(
+            "❌ Token invalid or expired:",
+            response.status,
+            errorText,
+          );
           // Token invalid or expired
           localStorage.removeItem("token");
           navigate("/login");
         }
       } catch (error) {
-        console.error("Failed to fetch user info:", error);
+        console.error("❌ Failed to fetch user info:", error);
         localStorage.removeItem("token");
         navigate("/login");
       } finally {

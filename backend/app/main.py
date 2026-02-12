@@ -3,14 +3,31 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from contextlib import asynccontextmanager
 
-from app.core.database import get_db
+from app.core.database import get_db, test_connection
 from app.core.config import get_settings
 from app.api.auth import router as auth_router
 
 settings = get_settings()
 
-app = FastAPI(title="FlowForge", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events."""
+    # Startup
+    print("🚀 Starting FlowForge backend...")
+    await test_connection()
+    yield
+    # Shutdown
+    print("👋 Shutting down FlowForge backend...")
+
+
+app = FastAPI(
+    title="FlowForge",
+    version="0.1.0",
+    lifespan=lifespan
+)
 
 # Add Session middleware (required for OAuth)
 app.add_middleware(

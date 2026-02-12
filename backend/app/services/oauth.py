@@ -1,10 +1,11 @@
 """Google OAuth service for user authentication."""
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 from authlib.integrations.starlette_client import OAuth
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from uuid import UUID
 
 from app.core.config import get_settings
 from app.models.user import User
@@ -72,3 +73,26 @@ async def get_or_create_user_from_google(
     await db.refresh(new_user)
     
     return new_user
+
+
+async def verify_token(token: str, db: AsyncSession) -> User:
+    """Verify JWT token and return user."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise ValueError("Invalid token payload")
+        
+        # Get user from database
+        result = await db.execute(
+            select(User).where(User.id == UUID(user_id))
+        )
+        user = result.scalar_one_or_none()
+        
+        if user is None:
+            raise ValueError("User not found")
+        
+        return user
+        
+    except (JWTError, ValueError) as e:
+        raise ValueError(f"Token verification failed: {str(e)}")

@@ -10,6 +10,8 @@ from app.core.config import get_settings
 from app.api.auth import router as auth_router
 from app.api.rest import router as rest_router
 from app.integrations import register_all_integrations
+from app.api.integrations import router as integrations_router
+from app.api.workflows import router as workflows_router
 
 settings = get_settings()
 
@@ -53,6 +55,8 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router, prefix="/api")
 app.include_router(rest_router, prefix="/api")
+app.include_router(integrations_router, prefix="/api")
+app.include_router(workflows_router, prefix="/api")
 
 
 @app.get("/health")

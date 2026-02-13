@@ -1,35 +1,14 @@
 """
-Discord Integration
+Discord Actions
 
-A complete example integration showing how to implement the plugin architecture.
-
-WHAT IS DISCORD?
-- Discord is a messaging platform
-- It has "webhooks" - special URLs you can POST to that send messages to a channel
-- No OAuth needed - the webhook URL itself contains the auth token
-
-WHAT CAN IT DO?
-- Zero triggers (Discord doesn't push data to us)
-- One action: "Send Message" (POST to webhook URL)
-
-This serves as the blueprint for all future integrations.
+All action implementations for Discord integration.
 """
 
 import httpx
 from typing import Any, Dict, List
 
-from .base import (
-    BaseAction,
-    BaseTrigger,
-    IntegrationDefinition,
-    FieldSchema,
-    AuthConfig
-)
+from ..base import BaseAction, FieldSchema
 
-
-# ============================================================================
-# ACTIONS
-# ============================================================================
 
 class DiscordSendMessage(BaseAction):
     """
@@ -182,54 +161,3 @@ class DiscordSendMessage(BaseAction):
             
             except Exception as e:
                 raise Exception(f"Failed to send Discord message: {str(e)}")
-
-
-# ============================================================================
-# INTEGRATION DEFINITION
-# ============================================================================
-
-# This is what gets registered in the integration registry
-discord_integration = IntegrationDefinition(
-    id="discord",
-    name="Discord",
-    description="Send messages to Discord channels via webhooks",
-    icon_url="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png",
-    
-    # Authentication: Discord webhooks are self-contained (URL has the token)
-    auth_type="webhook_url",
-    auth_config=AuthConfig.webhook_url(),
-    
-    # No triggers - Discord doesn't push events to us
-    triggers=[],
-    
-    # One action: Send Message
-    actions=[
-        DiscordSendMessage()
-    ]
-)
-
-
-# ============================================================================
-# INTEGRATION METADATA
-# ============================================================================
-
-# This is used by the integration registry to provide helpful info
-INTEGRATION_METADATA = {
-    "category": "Communication",
-    "tags": ["messaging", "chat", "notifications"],
-    "setup_instructions": """
-        To set up Discord integration:
-        
-        1. Go to your Discord server
-        2. Click Server Settings → Integrations
-        3. Click "Create Webhook" or "View Webhooks"
-        4. Click "New Webhook"
-        5. Choose a channel for the webhook
-        6. Click "Copy Webhook URL"
-        7. Paste that URL into the connection settings
-        
-        That's it! No OAuth, no API keys, just the webhook URL.
-    """,
-    "documentation_url": "https://discord.com/developers/docs/resources/webhook",
-    "support_email": "support@example.com"
-}

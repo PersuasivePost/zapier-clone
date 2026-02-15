@@ -105,15 +105,17 @@ class DiscordSendMessage(BaseAction):
         Returns:
             {"message_id": "...", "channel_id": "...", "timestamp": "...", "success": true}
         """
-        # Extract webhook URL from credentials
-        webhook_url = credentials.get("webhook_url")
+        # Extract webhook URL from credentials OR config
+        # Priority: credentials > config (for flexibility)
+        webhook_url = credentials.get("webhook_url") or config.get("webhook_url")
         if not webhook_url:
-            raise ValueError("webhook_url is required in credentials")
+            raise ValueError("webhook_url is required in credentials or config")
         
         # Extract message content from config
-        message_content = config.get("message_content")
+        # Support both "message_content" (standard) and "content" (shorthand)
+        message_content = config.get("message_content") or config.get("content")
         if not message_content:
-            raise ValueError("message_content is required in config")
+            raise ValueError("message_content or content is required in config")
         
         # Build Discord webhook payload
         payload = {

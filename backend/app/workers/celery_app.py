@@ -109,6 +109,32 @@ celery_app.conf.task_queues = (
 # CELERY EVENTS (optional monitoring hooks)
 # ============================================================================
 
+from celery.signals import worker_ready
+
+@worker_ready.connect
+def on_worker_ready(sender=None, **kwargs):
+    """
+    Initialize integrations when Celery worker starts.
+    This is critical because Celery runs in a separate process from FastAPI.
+    """
+    print("\n" + "=" * 70)
+    print("🔌 Initializing integrations in Celery worker...")
+    print("=" * 70)
+    
+    # Import and register all integrations
+    from app.integrations import register_all_integrations, integration_registry
+    
+    # Register all integrations
+    register_all_integrations()
+    
+    print(f"✅ Registered {len(integration_registry._integrations)} integrations:")
+    for name, integration in integration_registry._integrations.items():
+        triggers = len(integration.triggers)
+        actions = len(integration.actions)
+        print(f"   - {integration.name}: {triggers} triggers, {actions} actions")
+    print("=" * 70 + "\n")
+
+
 @celery_app.task(bind=True)
 def debug_task(self):
     """Debug task to test Celery is working."""

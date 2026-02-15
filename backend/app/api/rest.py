@@ -221,30 +221,5 @@ async def test_action(
 # ============================================================================
 # WEBHOOK HANDLING
 # ============================================================================
-
-@router.post("/webhooks/{workflow_id}")
-async def handle_webhook(workflow_id: str, payload: Dict[str, Any]):
-    """
-    Receive a webhook and trigger the associated workflow.
-    
-    Path params:
-        workflow_id: The workflow ID (unique webhook URL)
-    
-    Body:
-        Any JSON payload
-    
-    Returns:
-        Success message
-    """
-    # TODO: Implement workflow triggering
-    # 1. Look up workflow by workflow_id
-    # 2. Verify it has a webhook trigger
-    # 3. Get the trigger instance
-    # 4. Call trigger.handle_webhook(payload, headers)
-    # 5. Queue the workflow execution with the processed data
-    
-    return {
-        "message": "Webhook received",
-        "workflow_id": workflow_id,
-        "status": "queued"
-    }
+# Note: Webhook handling has been moved to app/api/webhooks.py
+# This endpoint is deprecated and should not be used

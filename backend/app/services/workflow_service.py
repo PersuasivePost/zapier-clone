@@ -18,7 +18,7 @@ async def create_workflow(db: AsyncSession, user_id: uuid.UUID, data: WorkflowCr
         name=data.name,
         description=data.description,
         polling_interval=data.polling_interval,
-        status=WorkflowStatus.DRAFT,
+        status=data.status,
     )
 
     db.add(workflow)

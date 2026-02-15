@@ -15,6 +15,7 @@ from app.schemas.workflow_step import (
 class WorkflowCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
+    status: Optional[WorkflowStatus] = Field(default=WorkflowStatus.DRAFT)
     polling_interval: int = Field(default=300, ge=60, le=86400)
     # Steps can be added during creation or later
     steps: Optional[List[WorkflowStepCreate]] = None

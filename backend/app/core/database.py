@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     AsyncSession,
 )
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import NullPool
 from urllib.parse import parse_qsl, urlencode
 import ssl
@@ -85,6 +86,72 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
+
+# ============================================================================
+# SYNCHRONOUS DATABASE ENGINE (For Celery Workers)
+# ============================================================================
+# Celery workers run in separate processes and need synchronous database access.
+# We create a sync engine using psycopg2 instead of asyncpg.
+
+# Get sync database URL
+sync_db_url = settings.DATABASE_URL_SYNC
+if not sync_db_url:
+    # Convert async URL to sync URL
+    if "+asyncpg" in settings.DATABASE_URL:
+        sync_db_url = settings.DATABASE_URL.replace("+asyncpg", "")
+    else:
+        sync_db_url = settings.DATABASE_URL
+
+# Remove query params that psycopg2 doesn't need the same way
+if "?" in sync_db_url:
+    base, qs = sync_db_url.split("?", 1)
+    params = dict(parse_qsl(qs))
+    # Keep sslmode for psycopg2
+    # Remove channel_binding
+    params.pop("channel_binding", None)
+    if params:
+        sync_db_url = f"{base}?{urlencode(params)}"
+    else:
+        sync_db_url = base
+
+# Create synchronous engine
+sync_engine = create_engine(
+    sync_db_url,
+    echo=False,  # Less verbose for background workers
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10,
+    pool_recycle=3600,
+)
+
+# Create synchronous session maker
+SyncSessionLocal = sessionmaker(
+    bind=sync_engine,
+    class_=Session,
+    expire_on_commit=False,
+    autoflush=False,
+)
+
+
+def get_sync_db() -> Session:
+    """
+    Get synchronous database session for Celery workers.
+    
+    Usage in Celery tasks:
+        session = get_sync_db()
+        try:
+            workflow = session.query(Workflow).filter_by(id=workflow_id).first()
+            # ... do work ...
+            session.commit()
+        finally:
+            session.close()
+    """
+    return SyncSessionLocal()
+
+
+# ============================================================================
+# ASYNC DATABASE FUNCTIONS (For FastAPI)
+# ============================================================================
 
 async def get_db():
     """Dependency to get async database session."""
